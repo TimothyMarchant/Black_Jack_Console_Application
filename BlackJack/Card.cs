@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace BlackJack
 {
+    //card class
     public class Card
     {
         private int value;
         private char type;
         private char suite;
+        //default constructor.  Shouldn't really be called
         public Card()
         {
             value = 1;
@@ -35,13 +37,19 @@ namespace BlackJack
         {
             return suite;
         }
+        //default print
         public override string ToString()
         {
             return "Value:" + value+" Type:"+type+" Suite:"+suite;
         }
+        //print this in general
         public string GetTypeandValue()
         {
             return "V:" + value + " T:" + type;
+        }
+        public string GetTypestring()
+        {
+            return "Type: " + type;
         }
     }
 }

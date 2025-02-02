@@ -1,14 +1,18 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace BlackJack
 {
     internal class Program
     {
+        //get the winner of the round (or a draw).
         static int GetWinner(int dealervalue,int playervalue)
         {
             const int win = 1;
@@ -24,6 +28,7 @@ namespace BlackJack
             }
             return win;
         }
+        //print the hands of the dealer and player.
         static void printhands(bool secondphase,Player Dealer,Player player)
         {
             const bool playerhand = false;
@@ -33,6 +38,7 @@ namespace BlackJack
             Console.Write("Player:");
             player.showhand(playerhand);
         }
+        //Plays the dealer.
         static bool DealerTurn(Deck deck,Player Dealer)
         {
             if (Dealer.GetValue() >= 17)
@@ -46,6 +52,7 @@ namespace BlackJack
             }
             return false;
         }
+        //Player turn, gets user input for whether or not to take a hit or stand.
         static bool PlayerTurn(Deck deck,Player player)
         {
             const bool finished = false;
@@ -80,6 +87,7 @@ namespace BlackJack
             }
             return false;
         }
+        //for tie breaking a 21 (blackjack trumps a score of 21 if it's not a blackjack).
         static int BlackjackTieBreaker(Player player,Player Dealer)
         {
             const int tie = 0;
@@ -98,6 +106,7 @@ namespace BlackJack
                 return dealerwins; 
             }
         }
+        //This function actually plays the round (that is taking hits/stand).
         static int PlayRound(Deck deck,Player player,Player Dealer)
         {
             const int win = 1;
@@ -113,16 +122,27 @@ namespace BlackJack
                 PlayerisPlaying =PlayerTurn(deck, player);
                 
             }
+            
             printhands(AtSecondPhase, Dealer, player);
+            //wait a second so that we aren't bombarding the player
+            Thread.Sleep(1000);
             if (player.GetValue() > 21)
             {
+                Console.WriteLine("Player busted, dealer wins");
                 return lose;
             }
             while (!DealerAt17)
             {
-                printhands(AtSecondPhase, Dealer, player);
                 DealerAt17 = DealerTurn(deck, Dealer);
+                //prevent an unnecessary print
+                if (DealerAt17)
+                {
+                    break;
+                }
+                printhands(AtSecondPhase, Dealer, player);
                 
+                Thread.Sleep(2000);
+
             }
             int score = GetWinner(Dealer.GetValue(), player.GetValue());
             if (Dealer.GetValue() > 21)
@@ -133,18 +153,18 @@ namespace BlackJack
             
             else if (score==win)
             {
-                Console.WriteLine("Winner: Player");
+                Console.WriteLine("Player wins, player had a higher card value");
                 //black jack is defined when the person has an ace and a 10 value card.  (only 2 cards; according to wikipedia)
                 if (player.GetValue() == 21&&CheckforBlackJack(player))
                 {
-                    Console.WriteLine("BlackJack");
+                    Console.WriteLine("Player had a Blackjack");
                     return blackjackwin;
                 }
                 return win;
             }
             else if (score==lose)
             {
-                Console.WriteLine("Winner: Dealer");
+                Console.WriteLine("Dealer had a better hand and therefore wins");
                 return lose;
             }
             else
@@ -156,20 +176,23 @@ namespace BlackJack
                     int result=BlackjackTieBreaker(player, Dealer);
                     if (result == win)
                     {
-                        Console.WriteLine("Winner: Player");
-                        Console.WriteLine("BlackJack");
+                        Console.WriteLine("Player had a better hand and wins");
+                        Console.WriteLine("Player had a Blackjack");
                         return blackjackwin;
                     }
                     else if (result == dealerwontiebreaker)
                     {
-                        Console.WriteLine("Winner: Dealer");
-                        Console.WriteLine("Dealer had blackjack");
+                        Console.WriteLine("The dealer had a better hand and wins");
+                        Console.WriteLine("Dealer had a Blackjack");
                         return lose;
                     }
                 }
+                Console.WriteLine("Both the dealer and player tied, push");
                 return tie;
             }
         }
+        //Starts the round and sets up the deck.
+        //Ignore the sarcastic remarks
         static int StartRound(int bet)
         {
             const int win= 1;
@@ -188,91 +211,158 @@ namespace BlackJack
             //take the dealers money!
             if (result==win)
             {
-                return 2 * bet;
+                //The user never lost money in the calling method (or actually put forth money).
+                return bet;
             }
             //have you considered counting cards before?
             else if (result == lose)
             {
                 return -1 * bet;
             }
-            //
+            //Black jack win
             else if (result == blackjackwin)
             {
-                return 3 * bet;
+                return 2 * bet;
             }
             //push
             else
             {
-                return bet;
+                //gain nothing
+                return 0;
             }
         }
+        //main controlling function.
+        //This function holds all user info (or really just their money).  And has other helper methods for actually playing the game.
         static void playBlackJack()
         {
-            
             int UserMoney = 200;
-            while (UserMoney>0)
+            bool wanttoquit = false;
+            const string progresspresent = "present";
+            const string progressnotpresent = "notpresent";
+            const string savefile = "blackjacksave.txt";
+            const string startingmoney = "200";
+            StreamWriter writer;
+
+            StreamReader reader;
+            //for saving progress
+            try
             {
+                reader = new StreamReader(savefile);
+                if (reader.ReadLine().Equals(progresspresent))
+                {
+                    UserMoney = int.Parse(reader.ReadLine());
+                    if (UserMoney < 200)
+                    {
+                        UserMoney = 200;
+                    }
+                }
+                reader.Close();
+            }
+            //Some sort of file problem.
+            catch (Exception e)
+            {
+                Console.WriteLine("Error reading save data");
+                //simply create a new file
+                writer = new StreamWriter(savefile);
+                writer.WriteLine(progressnotpresent);
+                writer.WriteLine(startingmoney);
+                writer.Close();
+            }
+            
+            Console.WriteLine("Welcome to Blackjack");
+            while (!wanttoquit)
+            {
+                Console.WriteLine("Type quit to exit the program when finished, otherwise type a bet");
                 Console.WriteLine("Current cash: "+UserMoney);
                 Console.Write("Enter bet:");
-                int bet=int.Parse(Console.ReadLine());
-                if (bet < 0)
+                try
                 {
-
+                    string Bet_To_Be_Parsed = Console.ReadLine();
+                    Bet_To_Be_Parsed = Bet_To_Be_Parsed.ToLower();
+                    if (Bet_To_Be_Parsed.Equals("quit"))
+                    {
+                        wanttoquit = true;
+                        
+                        break;
+                    }
+                    int bet=int.Parse(Bet_To_Be_Parsed);
+                    if (bet < 0||bet>UserMoney)
+                    {
+                        throw new Exception();
+                    }
+                    //play game
+                    else
+                    {
+                        bet = StartRound(bet);
+                        UserMoney += bet;
+                    }
+                    if (UserMoney <= 0)
+                    {
+                        Console.WriteLine("You're out of money, type loan (or anything honestly) to get a loan of 200 dollars, or type quit to quit right before your big win");
+                        string finalrequest = Console.ReadLine();
+                        finalrequest = finalrequest.ToLower();
+                        if (finalrequest.Equals("quit"))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            UserMoney = int.Parse(startingmoney);
+                        }
+                    }
                 }
-                else if (bet > UserMoney)
+                catch (Exception e)
                 {
-
-                }
-                //play game
-                else
-                {
-                    bet=StartRound(bet);
-                    UserMoney += bet;
+                    Console.WriteLine("Type a valid option");
                 }
             }
+            try
+            {
+                //save progress
+                writer = new StreamWriter(savefile);
+                writer.WriteLine(progresspresent);
+                writer.WriteLine(UserMoney.ToString());
+                writer.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error writing save data");
+            }
+            Console.WriteLine("Have a nice day");
         }
-        static void UnitTestValuecounting()
+        //Look for a save file.  If one does not exist create a new file
+        static void SearchForSave()
         {
-            Player player = new Player(false);
-            Deck deck = new Deck();
-            //natural 21
-            player.Addcard(deck.getCard(0));
-            player.Addcard(deck.getCard(10));
-            Console.WriteLine(player.GetValue());
-            player.emptyhand();
-            //generic hand ace+6=17
-            player.Addcard(deck.getCard(0));
-            player.Addcard(deck.getCard(5));
-            Console.WriteLine(player.GetValue());
-            player.emptyhand();
-            //overload 10+7+ace=18
-            player.Addcard(deck.getCard(0));
-            player.Addcard(deck.getCard(6));
-            player.Addcard(deck.getCard(10));
-            Console.WriteLine(player.GetValue());
-            player.emptyhand();
-            //two aces should be 12 (ace+ace=11+1=12)
-            player.Addcard(deck.getCard(0));
-            player.Addcard(deck.getCard(13));
-            Console.WriteLine(player.GetValue());
-            player.emptyhand();
-            //out of order hand (ace in the middle) 5+ace=16;
-            player.Addcard(deck.getCard(4));
-            player.Addcard(deck.getCard(0));
-            Console.WriteLine(player.GetValue());
-            player.emptyhand();
-            //5+ace+ace=17
-            player.Addcard(deck.getCard(0));
-            player.Addcard(deck.getCard(4));
-            player.Addcard(deck.getCard(13));
-            Console.WriteLine(player.GetValue());
-            player.emptyhand();
-
+            const string progressnotpresent = "notpresent";
+            const string save = "blackjacksave.txt";
+            try
+            {
+                string currentdirectory = Directory.GetCurrentDirectory();
+                string[] file=Directory.GetFiles(currentdirectory, save);
+                if (file.Length == 0)
+                {
+                    //create file
+                    StreamWriter writer=new StreamWriter(save);
+                    writer.WriteLine(progressnotpresent);
+                    writer.WriteLine("200");
+                    writer.Close();
+                }
+                else
+                {
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
         static void Main(string[] args)
         {
+            //look for a file
+            SearchForSave();
+            //Play blackjack
             playBlackJack();
-            //UnitTestValuecounting();
         }
     }
 }
