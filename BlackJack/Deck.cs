@@ -73,9 +73,6 @@ namespace BlackJack
                 temp = deck[i];
                 deck[i] = deck[index];
                 deck[index] = temp;
-                //Console.Write(i+": ");
-                //Console.WriteLine(deck[i]);
-                Thread.Sleep(1);
             }
         }
         public void printdeck()
