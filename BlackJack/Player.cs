@@ -45,18 +45,35 @@ namespace BlackJack
         //print current hand
         public void showhand(bool secondphase)
         {
+            string type;
             //this only exists for the dealer.
             if (IsDealer&& !secondphase)
             {
+                if (Hand[0].GetType() == '0')
+                {
+                    type = "Type: 10";
+                }
+                else
+                {
+                    type = Hand[0].GetTypestring();
+                }
                 //only print the first card.  The other one is hidden.
-                Console.WriteLine(Hand[0]);
+                Console.WriteLine(type);
                 Console.WriteLine("Value:" + Hand[0].GetValue());
             }
             else
             {
                 foreach (Card card in Hand)
                 {
-                    Console.Write(card.GetTypeandValue() + ",");
+                    if (card.GetType() == '0')
+                    {
+                        type = "Type: 10";
+                    }
+                    else
+                    {
+                        type = card.GetTypestring();
+                    }
+                    Console.Write(type + ",");
                 }
                 Console.WriteLine();
                 Console.WriteLine("Value:" + value);

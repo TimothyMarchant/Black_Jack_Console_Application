@@ -47,5 +47,9 @@ namespace BlackJack
         {
             return "V:" + value + " T:" + type;
         }
+        public string GetTypestring()
+        {
+            return "Type: " + type;
+        }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace BlackJack
 {
@@ -121,16 +122,27 @@ namespace BlackJack
                 PlayerisPlaying =PlayerTurn(deck, player);
                 
             }
+            
             printhands(AtSecondPhase, Dealer, player);
+            //wait a second so that we aren't bombarding the player
+            Thread.Sleep(1000);
             if (player.GetValue() > 21)
             {
+                Console.WriteLine("Player busted, dealer wins");
                 return lose;
             }
             while (!DealerAt17)
             {
-                printhands(AtSecondPhase, Dealer, player);
                 DealerAt17 = DealerTurn(deck, Dealer);
+                //prevent an unnecessary print
+                if (DealerAt17)
+                {
+                    break;
+                }
+                printhands(AtSecondPhase, Dealer, player);
                 
+                Thread.Sleep(2000);
+
             }
             int score = GetWinner(Dealer.GetValue(), player.GetValue());
             if (Dealer.GetValue() > 21)
@@ -141,18 +153,18 @@ namespace BlackJack
             
             else if (score==win)
             {
-                Console.WriteLine("Winner: Player");
+                Console.WriteLine("Player wins, player had a higher card value");
                 //black jack is defined when the person has an ace and a 10 value card.  (only 2 cards; according to wikipedia)
                 if (player.GetValue() == 21&&CheckforBlackJack(player))
                 {
-                    Console.WriteLine("BlackJack");
+                    Console.WriteLine("Player had a Blackjack");
                     return blackjackwin;
                 }
                 return win;
             }
             else if (score==lose)
             {
-                Console.WriteLine("Winner: Dealer");
+                Console.WriteLine("Dealer had a better hand and therefore wins");
                 return lose;
             }
             else
@@ -164,17 +176,18 @@ namespace BlackJack
                     int result=BlackjackTieBreaker(player, Dealer);
                     if (result == win)
                     {
-                        Console.WriteLine("Winner: Player");
-                        Console.WriteLine("BlackJack");
+                        Console.WriteLine("Player had a better hand and wins");
+                        Console.WriteLine("Player had a Blackjack");
                         return blackjackwin;
                     }
                     else if (result == dealerwontiebreaker)
                     {
-                        Console.WriteLine("Winner: Dealer");
-                        Console.WriteLine("Dealer had blackjack");
+                        Console.WriteLine("The dealer had a better hand and wins");
+                        Console.WriteLine("Dealer had a Blackjack");
                         return lose;
                     }
                 }
+                Console.WriteLine("Both the dealer and player tied, push");
                 return tie;
             }
         }
