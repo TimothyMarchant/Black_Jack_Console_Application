@@ -9,29 +9,43 @@ namespace BlackJack
 {
     internal class Player
     {
+        //using a list was easier than using a normal array.
         protected List<Card> Hand;
+        //instead of making a new child class, the only difference between a regular player and the dealer is the face down card the dealer has at the start and hitting soft at 17.
         private bool IsDealer;
+        //current hands value
         protected int value;
+        //shouldn't be called
+        private Player()
+        {
+            Hand = new List<Card>();
+            value = 0;
+            IsDealer = false;
+        }
         public Player(bool IsDealer)
         {
             Hand = new List<Card>();
             value = 0;
             this.IsDealer = IsDealer;
         }
+        //add a card
         public void Addcard(Card card)
         {
             
             Hand.Add(card);
             calculatevalue();
         }
+        //remove cards in hand
         public void emptyhand()
         {
             //hand is empty so value must be zero.
             value = 0;
             Hand.Clear();
         }
+        //print current hand
         public void showhand(bool secondphase)
         {
+            //this only exists for the dealer.
             if (IsDealer&& !secondphase)
             {
                 //only print the first card.  The other one is hidden.
@@ -48,6 +62,7 @@ namespace BlackJack
                 Console.WriteLine("Value:" + value);
             }
         }
+        //calculate current hand's value.
         private void calculatevalue()
         {
             //reset value

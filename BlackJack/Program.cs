@@ -11,6 +11,7 @@ namespace BlackJack
 {
     internal class Program
     {
+        //get the winner of the round (or a draw).
         static int GetWinner(int dealervalue,int playervalue)
         {
             const int win = 1;
@@ -26,6 +27,7 @@ namespace BlackJack
             }
             return win;
         }
+        //print the hands of the dealer and player.
         static void printhands(bool secondphase,Player Dealer,Player player)
         {
             const bool playerhand = false;
@@ -35,6 +37,7 @@ namespace BlackJack
             Console.Write("Player:");
             player.showhand(playerhand);
         }
+        //Plays the dealer.
         static bool DealerTurn(Deck deck,Player Dealer)
         {
             if (Dealer.GetValue() >= 17)
@@ -48,6 +51,7 @@ namespace BlackJack
             }
             return false;
         }
+        //Player turn, gets user input for whether or not to take a hit or stand.
         static bool PlayerTurn(Deck deck,Player player)
         {
             const bool finished = false;
@@ -82,6 +86,7 @@ namespace BlackJack
             }
             return false;
         }
+        //for tie breaking a 21 (blackjack trumps a score of 21 if it's not a blackjack).
         static int BlackjackTieBreaker(Player player,Player Dealer)
         {
             const int tie = 0;
@@ -100,6 +105,7 @@ namespace BlackJack
                 return dealerwins; 
             }
         }
+        //This function actually plays the round (that is taking hits/stand).
         static int PlayRound(Deck deck,Player player,Player Dealer)
         {
             const int win = 1;
@@ -172,6 +178,8 @@ namespace BlackJack
                 return tie;
             }
         }
+        //Starts the round and sets up the deck.
+        //Ignore the sarcastic remarks
         static int StartRound(int bet)
         {
             const int win= 1;
@@ -210,6 +218,8 @@ namespace BlackJack
                 return 0;
             }
         }
+        //main controlling function.
+        //This function holds all user info (or really just their money).  And has other helper methods for actually playing the game.
         static void playBlackJack()
         {
             int UserMoney = 200;
@@ -235,10 +245,11 @@ namespace BlackJack
                 }
                 reader.Close();
             }
+            //Some sort of file problem.
             catch (Exception e)
             {
                 Console.WriteLine("Error reading save data");
-                
+                //simply create a new file
                 writer = new StreamWriter(savefile);
                 writer.WriteLine(progressnotpresent);
                 writer.WriteLine(startingmoney);
@@ -294,7 +305,7 @@ namespace BlackJack
             }
             try
             {
-                
+                //save progress
                 writer = new StreamWriter(savefile);
                 writer.WriteLine(progresspresent);
                 writer.WriteLine(UserMoney.ToString());
@@ -302,9 +313,11 @@ namespace BlackJack
             }
             catch (Exception e)
             {
+                Console.WriteLine("Error writing save data");
             }
             Console.WriteLine("Have a nice day");
         }
+        //Look for a save file.  If one does not exist create a new file
         static void SearchForSave()
         {
             const string progressnotpresent = "notpresent";
@@ -333,7 +346,9 @@ namespace BlackJack
         }
         static void Main(string[] args)
         {
+            //look for a file
             SearchForSave();
+            //Play blackjack
             playBlackJack();
         }
     }

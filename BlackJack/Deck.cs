@@ -9,6 +9,7 @@ namespace BlackJack
     public class Deck
     {
         private const int decklength=52;
+        //Treat the deck like a stack.
         private Card[] deck;
         private int stackpointer;
         public Deck()
@@ -27,6 +28,7 @@ namespace BlackJack
             }
             stackpointer = decklength-1;
         }
+        //get the suite of the card
         private char GetSuite(int suitenum)
         {
             char temp = 'a';
@@ -60,10 +62,9 @@ namespace BlackJack
             char[] typetable = new char[] { 'a', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K' };
             return typetable[index];
         }
+        //shuffle the deck using the Fisher-Yates shuffle algorithm
         public void ShuffleDeck()
         {
-            
-            //I've implemented Fisher-Yates shuffle
             int index = 0;
             for (int i = decklength - 1; i >= 0; i--)
             {
@@ -75,6 +76,7 @@ namespace BlackJack
                 deck[index] = temp;
             }
         }
+        //print the deck
         public void printdeck()
         {
             for (int i = 0; i < decklength; i++)
@@ -83,16 +85,19 @@ namespace BlackJack
                 Console.WriteLine(deck[i]);
             }
         }
+        //return the top card and change the stackpointer.  (Pop() operation)
         public Card getTopCard()
         {
             Card card = deck[stackpointer];
             RemoveCard();
             return card;
         }
+        //we're working with an array, so we don't actually have to change anything other than decrement the stack pointer.
         public void RemoveCard()
         {
             stackpointer--;
         }
+        //get a card at a specific index.  Shouldn't really be called except for testing.
         public Card getCard(int index)
         {
             return deck[index];
